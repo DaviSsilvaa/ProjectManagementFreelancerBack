@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+/**
+ * Módulos do servidor.
+ */
+var app = require('../app'); // Importa nosso app.js
+var debug = require('debug')('api:server');
+var http = require('http');
+
+// IMPORTAÇÃO DO SEQUELIZE (Adicione esta linha)
+const { sequelize } = require('../models');
+
+/**
+ * Pega a porta do ambiente ou usa 3333.
+ */
+var port = normalizePort(process.env.PORT || '3333');
+app.set('port', port);
+
+/**
+ * Cria o servidor HTTP.
+ */
+var server = http.createServer(app);
+
+/**
+ * Função para iniciar o servidor (MODIFICADA)
+ * Vamos checar o banco de dados ANTES de ligar o servidor.
+ */
+async function startServer() {
+  try {
+    // 1. Tenta conectar ao banco de dados
+    await sequelize.authenticate();
+    console.log('[BANCO DE DADOS] Conexão estabelecida com sucesso.');
+
+    // 2. Se conectar, inicia o servidor web
+    server.listen(port);
+    server.on('error', onError);
+    server.on('listening', onListening);
+
+  } catch (error) {
+    // Se a conexão com o banco falhar, encerra a aplicação
+    console.error('[BANCO DE DADOS] Não foi possível conectar:', error);
+    process.exit(1);
+  }
+}
+
+// Inicia o servidor
+startServer();
+
+
+/**
+ * Normaliza a porta.
+ * (Função padrão do Express Generator - mantenha como está)
+ */
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+  if (isNaN(port)) { return val; }
+  if (port >= 0) { return port; }
+  return false;
+}
+
+/**
+ * Event listener para erros do servidor.
+ * (Função padrão do Express Generator - mantenha como está)
+ */
+function onError(error) {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Porta ' + port;
+  switch (error.code) {
+    case 'EACCES':
+      console.error(bind + ' requer privilégios elevados');
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(bind + ' já está em uso');
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener para quando o servidor "escuta".
+ * (Função padrão do Express Generator - modificada para logar a porta)
+ */
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'porta ' + addr.port;
+  debug('Listening on ' + bind);
+  console.log(`[SERVIDOR] Rodando e escutando na ${bind}`);
+}
