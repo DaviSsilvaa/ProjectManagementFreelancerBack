@@ -16,8 +16,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     owner_user_id: DataTypes.UUID,
     name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    phone: DataTypes.STRING,
+    email: {
+    type: DataTypes.STRING,
+    validate: { isEmail: true }
+  },
+    phone: {
+    type: DataTypes.STRING,
+    set(value) {
+      this.setDataValue('phone', value.replace(/\D/g, ''));
+    }
+  },
     company: DataTypes.STRING,
     notes: DataTypes.TEXT
   }, {
