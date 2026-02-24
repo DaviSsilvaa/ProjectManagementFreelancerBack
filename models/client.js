@@ -5,6 +5,10 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Client extends Model {
     static associate(models) {
+      this.hasMany(models.Project, {
+    foreignKey: 'client_id', // Certifique-se que este é o nome da coluna no seu banco
+    as: 'Projects' // Este apelido deve bater com o 'include' do Controller
+  });
     }
   }
   Client.init({
