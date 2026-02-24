@@ -9,16 +9,24 @@ const cors = require('cors');
 
 const { sequelize } = require('./models');
 
+
+console.log('--- TESTE DE CONFIGURAÇÃO ---');
+console.log('Chave encontrada:', process.env.GEMINI_API_KEY ? 'Sim (Inicia com ' + process.env.GEMINI_API_KEY.substring(0, 4) + ')' : 'Não encontrada!');
+console.log('-----------------------------');
+
 // Routers
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/usersRoutes');
 const clientRouter = require('./routes/clientRoutes'); // rotas de clientes
 const projectRouter = require('./routes/projectRoutes'); // ✅ rotas de projetos
+const attachmentRouter = require('./routes/attachmentRoutes');
 
 const app = express();
 
 /* ---------- Middlewares base ---------- */
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -43,6 +51,8 @@ app.use(
   })
 );
 
+app.use('/files', express.static(path.resolve(__dirname, 'uploads')));
+
 /* ---------- Sincronização das tabelas ---------- */
 sequelize
   .sync({ alter: true })
@@ -57,6 +67,7 @@ api.get('/health', (_req, res) => res.json({ ok: true }));
 api.use('/users', usersRouter); // /api/v1/users/...
 api.use('/clients', clientRouter); // /api/v1/clients/...
 api.use('/projects', projectRouter); // ✅ /api/v1/projects/...
+api.use('/attachments', attachmentRouter);
 
 app.use('/api/v1', api);
 
