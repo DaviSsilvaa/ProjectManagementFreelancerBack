@@ -63,11 +63,16 @@ module.exports = {
         return res.status(401).json({ message: 'Senha incorreta' });
       }
 
-      const token = jwt.sign(
-        { id: user.id, email: user.email, name: user.name },
-        process.env.JWT_SECRET,
-        { expiresIn: '8h' }
-      );
+const token = jwt.sign(
+  { 
+    id: user.id, 
+    email: user.email, 
+    name: user.name, 
+    role: user.role 
+  },
+  process.env.JWT_SECRET,
+  { expiresIn: '8h' }
+);
 
       user.password_hash = undefined;  // Remove a senha da resposta
       return res.json({
@@ -78,5 +83,43 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({ message: 'Erro ao fazer login', details: error.message });
     }
+  },
+
+async updateProfile(req, res) {
+  try {
+    const { name, role, specialty } = req.body;
+    const user = await User.findByPk(req.user.id);
+
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado." });
+
+    await user.update({ 
+      name, 
+      role,
+      specialty 
+    });
+
+    return res.json(user);
+  } catch (err) {
+    return res.status(500).json({ error: "Erro ao atualizar perfil no servidor." });
   }
+},
+
+
+async updateRole(req, res) {
+  try {
+    const { id } = req.params;
+    const { role } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ error: "Usuário não encontrado." });
+
+    await user.update({ role });
+    return res.json({ message: "Role atualizado com sucesso!", user });
+  } catch (err) {
+    return res.status(500).json({ error: "Erro ao atualizar role." });
+  }
+}
+
+
+
 };
