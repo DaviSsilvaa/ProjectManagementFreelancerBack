@@ -33,6 +33,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       type: DataTypes.STRING(255)
     },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'user'
+    },
+    specialty: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'Desenvolvedor Pleno'
+    },
     createdAt: {
       allowNull: false,
       type: DataTypes.DATE,
@@ -47,6 +57,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'User',
+    tableName: 'Users'
   });
   return User;
 };

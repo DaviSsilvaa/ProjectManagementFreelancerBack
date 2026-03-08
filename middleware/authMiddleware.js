@@ -1,7 +1,8 @@
 'use strict';
 const jwt = require('jsonwebtoken');
+const { User } = require('../models');
 
-module.exports = function(req, res, next) {
+module.exports = async function(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -18,8 +19,17 @@ module.exports = function(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const user = await User.findByPk(decoded.id);
+
+    if (!user) return res.status(401).json({ error: 'Usuário não encontrado' });
     
-    req.user = decoded; 
+    req.user = {
+      id: user.id,
+      role: user.role,
+      email: user.email,
+      name: user.name
+    };
 
     return next();
   } catch (error) {
