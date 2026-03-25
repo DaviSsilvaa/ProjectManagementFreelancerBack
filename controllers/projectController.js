@@ -1,6 +1,5 @@
 const { Project, ProjectAttachment, Client, ProjectLog } = require("../models");
 
-// Função auxiliar para filtrar os campos permitidos na requisição
 function pick(body) {
   return {
     client_id: body.client_id ?? null,
