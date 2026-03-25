@@ -6,17 +6,14 @@ module.exports = {
     try {
       const { name, email, phone, company, notes } = req.body;
 
-      // Verifica se os campos obrigatórios foram preenchidos
       if (!name || !email || !phone) {
         return res
           .status(400)
           .json({ error: "Nome, email e telefone são obrigatórios" });
       }
 
-      // Pega o ID do usuário que está logado, que vem do middleware de autenticação
       const owner_user_id = req.user.id;
 
-      // Cria o cliente no banco de dados
       const client = await Client.create({
         owner_user_id,
         name,
@@ -53,15 +50,15 @@ module.exports = {
       const { id } = request.params;
       const userId = request.user.id;
 
-
-const client = await Client.findOne({
-  where: { id: id, owner_user_id: userId },
-  include: [{
-    association: 'Projects', 
-    // Certifique-se de que 'status' está nesta lista de atributos
-    attributes: ['id', 'title', 'budget', 'status'] 
-  }]
-});
+      const client = await Client.findOne({
+        where: { id: id, owner_user_id: userId },
+        include: [
+          {
+            association: "Projects",
+            attributes: ["id", "title", "budget", "status"],
+          },
+        ],
+      });
 
       if (!client) {
         return response.status(404).json({ error: "Cliente não encontrado" });
@@ -69,7 +66,7 @@ const client = await Client.findOne({
 
       return response.status(200).json(client);
     } catch (err) {
-      console.error("Erro no getById:", err); // Importante para debugar
+      console.error("Erro no getById:", err);
       return response.status(500).json({ error: "Erro interno no servidor" });
     }
   },
@@ -87,12 +84,41 @@ const client = await Client.findOne({
         return res.status(404).json({ error: "Cliente não encontrado" });
       }
 
-      // Sem body por padrão para DELETE
       return res.status(204).send();
     } catch (error) {
       return res
         .status(500)
         .json({ error: "Erro ao excluir cliente", details: error.message });
+    }
+  },
+
+  async update(req, res) {
+    try {
+      const { id } = req.params;
+      const owner_user_id = req.user.id;
+      const { name, email, phone, company, notes } = req.body;
+
+      const client = await Client.findOne({
+        where: { id, owner_user_id }
+      });
+
+      if (!client) {
+        return res.status(404).json({ error: "Cliente não encontrado" });
+      }
+
+      await client.update({
+        name,
+        email,
+        phone,
+        company,
+        notes
+      });
+
+      return res.json(client);
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ error: "Erro ao atualizar cliente", details: error.message });
     }
   },
 };
